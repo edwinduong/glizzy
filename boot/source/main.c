@@ -13,16 +13,19 @@
 #include "BMfont3_png.h"
 #include "BMfont4_png.h"
 #include "BMfont5_png.h"
+
 #include "title_bg_jpg.h"
 #include "title_png.h"
-#include "goblin_1_jpg.h"
-#include "goblin_2_jpg.h"
-#include "goblin_3_jpg.h"
-#include "goblin_4_jpg.h"
+
+#include "game_bg_jpg.h"
 #include "table_1_png.h"
 #include "table_2_png.h"
 #include "table_3_png.h"
 #include "table_4_png.h"
+#include "goblin_1_png.h"
+#include "goblin_2_png.h"
+#include "goblin_3_png.h"
+#include "goblin_4_png.h"
 
 // RGBA Colors
 #define GRRLIB_BLACK   0x000000FF
@@ -71,16 +74,19 @@ GRRLIB_texImg *tex_BMfont2;
 GRRLIB_texImg *tex_BMfont3;
 GRRLIB_texImg *tex_BMfont4;
 GRRLIB_texImg *tex_BMfont5;
+
 GRRLIB_texImg *tex_title_bg;
 GRRLIB_texImg *tex_title;
-GRRLIB_texImg *tex_goblin_1;
-GRRLIB_texImg *tex_goblin_2;
-GRRLIB_texImg *tex_goblin_3;
-GRRLIB_texImg *tex_goblin_4;
+
+GRRLIB_texImg *tex_game_bg;
 GRRLIB_texImg *tex_table_1;
 GRRLIB_texImg *tex_table_2;
 GRRLIB_texImg *tex_table_3;
 GRRLIB_texImg *tex_table_4;
+GRRLIB_texImg *tex_goblin_1;
+GRRLIB_texImg *tex_goblin_2;
+GRRLIB_texImg *tex_goblin_3;
+GRRLIB_texImg *tex_goblin_4;
 
 // Title animations
 u32 title_zoom_time;
@@ -112,6 +118,8 @@ void title() {
 }
 
 void game() {
+    GRRLIB_DrawImg(LEFT, TOP, tex_game_bg, 0, 1, 1, GRRLIB_WHITE);
+
     for(int i = 0; i < NUM_PLAYERS; i++) {
         WPADData *wd = WPAD_Data(i);
         short p = wd->exp.mp.rx;
@@ -154,25 +162,40 @@ void load_textures() {
     GRRLIB_InitTileSet(tex_BMfont4, 16, 16, 32);
     tex_BMfont5 = GRRLIB_LoadTexture(BMfont5_png);
     GRRLIB_InitTileSet(tex_BMfont5, 8, 16, 0);
+
     tex_title_bg = GRRLIB_LoadTexture(title_bg_jpg);
     tex_title = GRRLIB_LoadTexture(title_png);
-    tex_goblin_1 = GRRLIB_LoadTexture(goblin_1_jpg);
-    tex_goblin_2 = GRRLIB_LoadTexture(goblin_2_jpg);
-    tex_goblin_3 = GRRLIB_LoadTexture(goblin_3_jpg);
-    tex_goblin_4 = GRRLIB_LoadTexture(goblin_4_jpg);
+
+    tex_game_bg = GRRLIB_LoadTexture(game_bg_jpg);
     tex_table_1 = GRRLIB_LoadTexture(table_1_png);
     tex_table_2 = GRRLIB_LoadTexture(table_2_png);
     tex_table_3 = GRRLIB_LoadTexture(table_3_png);
     tex_table_4 = GRRLIB_LoadTexture(table_4_png);
+    tex_goblin_1 = GRRLIB_LoadTexture(goblin_1_png);
+    tex_goblin_2 = GRRLIB_LoadTexture(goblin_2_png);
+    tex_goblin_3 = GRRLIB_LoadTexture(goblin_3_png);
+    tex_goblin_4 = GRRLIB_LoadTexture(goblin_4_png);
 }
 
 void free_textures() {
-    GRRLIB_FreeTexture(tex_title);
     GRRLIB_FreeTexture(tex_BMfont1);
     GRRLIB_FreeTexture(tex_BMfont2);
     GRRLIB_FreeTexture(tex_BMfont3);
     GRRLIB_FreeTexture(tex_BMfont4);
     GRRLIB_FreeTexture(tex_BMfont5);
+
+    GRRLIB_FreeTexture(title_bg_jpg);
+    GRRLIB_FreeTexture(title_png);
+
+    GRRLIB_FreeTexture(game_bg_jpg);
+    GRRLIB_FreeTexture(table_1_png);
+    GRRLIB_FreeTexture(table_2_png);
+    GRRLIB_FreeTexture(table_3_png);
+    GRRLIB_FreeTexture(table_4_png);
+    GRRLIB_FreeTexture(goblin_1_png);
+    GRRLIB_FreeTexture(goblin_2_png);
+    GRRLIB_FreeTexture(goblin_3_png);
+    GRRLIB_FreeTexture(goblin_4_png);
 }
 
 void setup() {
