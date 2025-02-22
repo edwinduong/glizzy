@@ -150,6 +150,7 @@ void game() {
                 if(goblin[i].topped) tex_goblin = tex_goblin_3;
             } else if (goblin[i].glizzies > 60){
                 tex_goblin = tex_goblin_5;
+                if(goblin[i].finished == 0) goblin[i].finished = ticks_to_millisecs(gettime());
             }
 
             GRRLIB_texImg *tex_table = tex_table_1;
@@ -180,6 +181,13 @@ void game() {
     }
 
     GRRLIB_DrawImg(LEFT, TOP, tex_hypercam, 0, 0.5, 0.5, GRRLIB_WHITE);
+
+    u32 d, m, s, ms;
+    d = curr_time - start_time;
+    ms = d % 1000;
+    s = (d / 1000) % 60;
+    m = ((d / 1000) / 60 ) % 60;
+    GRRLIB_Printf((RIGHT - 144) / 2, 64, tex_BMfont2, GRRLIB_FUCHSIA, 1, "%02d:%02d:%03d", m, s, ms);
 }
 
 void load_textures() {
