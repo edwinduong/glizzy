@@ -62,10 +62,12 @@ typedef struct Goblin {
     int glizzies;
     int topped;
     int bottomed;
+    u32 finished;
 } Goblin;
 
 // Game state
 int gaming = 0;
+u32 start_time;
 Goblin goblin[NUM_PLAYERS];
 
 // Textures
@@ -114,39 +116,51 @@ void title() {
     if((wpadheld & WPAD_BUTTON_A) && (wpadheld & WPAD_BUTTON_B)) {
         WPAD_SetMotionPlus(WPAD_CHAN_ALL, 1);
         gaming = 1;
+        start_time = ticks_to_millisecs(gettime()) + 5000;
     }
 }
 
 void game() {
+    u32 curr_time = ticks_to_millisecs(gettime());
+
     GRRLIB_DrawImg(LEFT, TOP, tex_game_bg, 0, 1, 1, GRRLIB_WHITE);
 
-    for(int i = 0; i < NUM_PLAYERS; i++) {
-        WPADData *wd = WPAD_Data(i);
-        short p = wd->exp.mp.rx;
-
-        GRRLIB_texImg *tex_goblin = tex_goblin_4;
-        if(goblin[i].bottomed && p < BOT_THRESH) tex_goblin = tex_goblin_1;
-        if(goblin[i].bottomed && p > BOT_THRESH) tex_goblin = tex_goblin_2;
-        if(goblin[i].topped) tex_goblin = tex_goblin_3;
-
-        GRRLIB_texImg *tex_table = tex_table_1;
-        if(goblin[i].glizzies < 20) {
-            tex_table = tex_table_4;
-        } else if (goblin[i].glizzies < 40) {
-            tex_table = tex_table_3;
-        } else if (goblin[i].glizzies < 60) {
-            tex_table = tex_table_2;
+    if(curr_time < start_time) {
+        for(int i = 0; i < NUM_PLAYERS; i++) {
+            GRRLIB_DrawImg(LEFT + (i * (RIGHT / NUM_PLAYERS)), TOP, tex_goblin_4, 0, 1, 1, GRRLIB_WHITE);
+            GRRLIB_DrawImg(LEFT + (i * (RIGHT / NUM_PLAYERS)), TOP, tex_table_4, 0, 1, 1, GRRLIB_WHITE);
         }
+        f32 s = 2 + 4 * ((start_time - curr_time) % 1000) / 1000.0;
+        GRRLIB_Printf((RIGHT - 32 * s) / 2, (BOTTOM - 32 * s) / 2, tex_BMfont3, GRRLIB_GREEN, s, "%d", (int)(start_time - curr_time) / 1000 + 1);
+    } else {
+        for(int i = 0; i < NUM_PLAYERS; i++) {
+            WPADData *wd = WPAD_Data(i);
+            short p = wd->exp.mp.rx;
 
-        GRRLIB_DrawImg(LEFT + (i * (RIGHT / NUM_PLAYERS)), TOP, tex_goblin, 0, 1, 1, GRRLIB_WHITE);
-        GRRLIB_DrawImg(LEFT + (i * (RIGHT / NUM_PLAYERS)), TOP, tex_table, 0, 1, 1, GRRLIB_WHITE);
+            GRRLIB_texImg *tex_goblin = tex_goblin_4;
+            if(goblin[i].bottomed && p < BOT_THRESH) tex_goblin = tex_goblin_1;
+            if(goblin[i].bottomed && p > BOT_THRESH) tex_goblin = tex_goblin_2;
+            if(goblin[i].topped) tex_goblin = tex_goblin_3;
 
-        if(p < BOT_THRESH) goblin[i].bottomed = 1;
-        if(goblin[i].bottomed == 1 && p > TOP_THRESH) goblin[i].topped = 1;
-        if(goblin[i].topped == 1 && goblin[i].bottomed == 1 && p > BOT_THRESH && p < TOP_THRESH) {
-            goblin[i].bottomed = 0;
-            goblin[i].topped = 0;
-            goblin[i].glizzies++;
+            GRRLIB_texImg *tex_table = tex_table_1;
+            if(goblin[i].glizzies < 20) {
+                tex_table = tex_table_4;
+            } else if (goblin[i].glizzies < 40) {
+                tex_table = tex_table_3;
+            } else if (goblin[i].glizzies < 60) {
+                tex_table = tex_table_2;
+            }
+
+            GRRLIB_DrawImg(LEFT + (i * (RIGHT / NUM_PLAYERS)), TOP, tex_goblin, 0, 1, 1, GRRLIB_WHITE);
+            GRRLIB_DrawImg(LEFT + (i * (RIGHT / NUM_PLAYERS)), TOP, tex_table, 0, 1, 1, GRRLIB_WHITE);
+
+            if(p < BOT_THRESH) goblin[i].bottomed = 1;
+            if(goblin[i].bottomed == 1 && p > TOP_THRESH) goblin[i].topped = 1;
+            if(goblin[i].topped == 1 && goblin[i].bottomed == 1 && p > BOT_THRESH && p < TOP_THRESH) {
+                goblin[i].bottomed = 0;
+                goblin[i].topped = 0;
+                goblin[i].glizzies++;
+            }
         }
     }
 }
@@ -184,18 +198,18 @@ void free_textures() {
     GRRLIB_FreeTexture(tex_BMfont4);
     GRRLIB_FreeTexture(tex_BMfont5);
 
-    GRRLIB_FreeTexture(title_bg_jpg);
-    GRRLIB_FreeTexture(title_png);
+    GRRLIB_FreeTexture(tex_title_bg);
+    GRRLIB_FreeTexture(tex_title);
 
-    GRRLIB_FreeTexture(game_bg_jpg);
-    GRRLIB_FreeTexture(table_1_png);
-    GRRLIB_FreeTexture(table_2_png);
-    GRRLIB_FreeTexture(table_3_png);
-    GRRLIB_FreeTexture(table_4_png);
-    GRRLIB_FreeTexture(goblin_1_png);
-    GRRLIB_FreeTexture(goblin_2_png);
-    GRRLIB_FreeTexture(goblin_3_png);
-    GRRLIB_FreeTexture(goblin_4_png);
+    GRRLIB_FreeTexture(tex_game_bg);
+    GRRLIB_FreeTexture(tex_table_1);
+    GRRLIB_FreeTexture(tex_table_2);
+    GRRLIB_FreeTexture(tex_table_3);
+    GRRLIB_FreeTexture(tex_table_4);
+    GRRLIB_FreeTexture(tex_goblin_1);
+    GRRLIB_FreeTexture(tex_goblin_2);
+    GRRLIB_FreeTexture(tex_goblin_3);
+    GRRLIB_FreeTexture(tex_goblin_4);
 }
 
 void setup() {
