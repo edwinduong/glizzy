@@ -8,6 +8,10 @@
 #include "BMfont4_png.h"
 #include "BMfont5_png.h"
 #include "title_jpg_jpg.h"
+#include "goblin_1_jpg.h"
+#include "goblin_2_jpg.h"
+#include "goblin_3_jpg.h"
+#include "goblin_4_jpg.h"
 
 // RGBA Colors
 #define GRRLIB_BLACK   0x000000FF
@@ -46,12 +50,16 @@ ir_t ir2;
 Goblin g1;
 Goblin g2;
 
-GRRLIB_texImg *tex_title;
 GRRLIB_texImg *tex_BMfont1;
 GRRLIB_texImg *tex_BMfont2;
 GRRLIB_texImg *tex_BMfont3;
 GRRLIB_texImg *tex_BMfont4;
 GRRLIB_texImg *tex_BMfont5;
+GRRLIB_texImg *tex_title;
+GRRLIB_texImg *tex_goblin_1;
+GRRLIB_texImg *tex_goblin_2;
+GRRLIB_texImg *tex_goblin_3;
+GRRLIB_texImg *tex_goblin_4;
 
 void title() {
     const u32 wpadheld = WPAD_ButtonsHeld(0);
@@ -66,18 +74,34 @@ void title() {
 }
 
 void game() {
-    u32 c1 = GRRLIB_WHITE;
-    u32 c2 = GRRLIB_WHITE;
-    if(g1.bottomed == 1) c1 = GRRLIB_RED;
-    if(g1.topped == 1) c1 = GRRLIB_GREEN;
-    GRRLIB_Printf(left, top+300, tex_BMfont3, c1, 1, "IR1 Y VALUE: %d %d %d", (int)ir1.y, g1.topped, g1.glizzies);
-    GRRLIB_Printf(left, top+400, tex_BMfont3, c2, 1, "IR2 Y VALUE: %d %d", (int)ir2.y, g1.bottomed);
+    GRRLIB_texImg *i1 = tex_goblin_4;
+    GRRLIB_texImg *i2 = tex_goblin_4;
+
+    if(g1.bottomed && ir1.y > BOT) i1 = tex_goblin_1;
+    if(g1.bottomed && ir1.y < BOT) i1 = tex_goblin_2;
+    if(g1.topped) i1 = tex_goblin_3;
+
+    if(g2.bottomed && ir2.y > BOT) i2 = tex_goblin_1;
+    if(g2.bottomed && ir2.y < BOT) i2 = tex_goblin_2;
+    if(g2.topped) i2 = tex_goblin_3;
+
+    GRRLIB_DrawImg(left, top, i1, 0, 1, 1, GRRLIB_WHITE);
+    GRRLIB_DrawImg(left + right / 2, top, i2, 0, 1, 1, GRRLIB_WHITE);
+
     if(ir1.y > BOT) g1.bottomed = 1;
     if(g1.bottomed == 1 && ir1.y < TOP) g1.topped = 1;
     if(g1.topped == 1 && g1.bottomed == 1 && ir1.y < BOT && ir1.y > TOP) {
         g1.bottomed = 0;
         g1.topped = 0;
         g1.glizzies++;
+    }
+    
+    if(ir2.y > BOT) g2.bottomed = 1;
+    if(g2.bottomed == 1 && ir2.y < TOP) g2.topped = 1;
+    if(g2.topped == 1 && g2.bottomed == 1 && ir2.y < BOT && ir2.y > TOP) {
+        g2.bottomed = 0;
+        g2.topped = 0;
+        g2.glizzies++;
     }
 }
 
@@ -87,8 +111,6 @@ int main() {
     WPAD_Init();
     WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
     WPAD_SetDataFormat(WPAD_CHAN_1, WPAD_FMT_BTNS_ACC_IR);
-
-    tex_title = GRRLIB_LoadTexture(title_jpg_jpg);
 
     tex_BMfont1 = GRRLIB_LoadTexture(BMfont1_png);
     GRRLIB_InitTileSet(tex_BMfont1, 32, 32, 32);
@@ -104,6 +126,12 @@ int main() {
 
     tex_BMfont5 = GRRLIB_LoadTexture(BMfont5_png);
     GRRLIB_InitTileSet(tex_BMfont5, 8, 16, 0);
+
+    tex_title = GRRLIB_LoadTexture(title_jpg_jpg);
+    tex_goblin_1 = GRRLIB_LoadTexture(goblin_1_jpg);
+    tex_goblin_2 = GRRLIB_LoadTexture(goblin_2_jpg);
+    tex_goblin_3 = GRRLIB_LoadTexture(goblin_3_jpg);
+    tex_goblin_4 = GRRLIB_LoadTexture(goblin_4_jpg);
 
     while(1) {
         WPAD_SetVRes(0, 640, 480);

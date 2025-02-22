@@ -74,7 +74,11 @@ main.o: C:/Users/Edwin/Documents/GitHub/glizzy/app/source/main.c \
  C:/Users/Edwin/Documents/GitHub/glizzy/app/build/BMfont3_png.h \
  C:/Users/Edwin/Documents/GitHub/glizzy/app/build/BMfont4_png.h \
  C:/Users/Edwin/Documents/GitHub/glizzy/app/build/BMfont5_png.h \
- C:/Users/Edwin/Documents/GitHub/glizzy/app/build/title_jpg_jpg.h
+ C:/Users/Edwin/Documents/GitHub/glizzy/app/build/title_jpg_jpg.h \
+ C:/Users/Edwin/Documents/GitHub/glizzy/app/build/goblin_1_jpg.h \
+ C:/Users/Edwin/Documents/GitHub/glizzy/app/build/goblin_2_jpg.h \
+ C:/Users/Edwin/Documents/GitHub/glizzy/app/build/goblin_3_jpg.h \
+ C:/Users/Edwin/Documents/GitHub/glizzy/app/build/goblin_4_jpg.h
 C:/devkitPro/libogc/include/wiiuse/wpad.h:
 C:/devkitPro/libogc/include/gctypes.h:
 C:/devkitPro/libogc/include/wiiuse/wiiuse.h:
@@ -151,3 +155,7 @@ C:/Users/Edwin/Documents/GitHub/glizzy/app/build/BMfont3_png.h:
 C:/Users/Edwin/Documents/GitHub/glizzy/app/build/BMfont4_png.h:
 C:/Users/Edwin/Documents/GitHub/glizzy/app/build/BMfont5_png.h:
 C:/Users/Edwin/Documents/GitHub/glizzy/app/build/title_jpg_jpg.h:
+C:/Users/Edwin/Documents/GitHub/glizzy/app/build/goblin_1_jpg.h:
+C:/Users/Edwin/Documents/GitHub/glizzy/app/build/goblin_2_jpg.h:
+C:/Users/Edwin/Documents/GitHub/glizzy/app/build/goblin_3_jpg.h:
+C:/Users/Edwin/Documents/GitHub/glizzy/app/build/goblin_4_jpg.h:
