@@ -36,8 +36,8 @@
 #define GRRLIB_WHITE   0xFFFFFFFF
 
 // Thresholds
-#define TOP 120
-#define BOT 360
+#define TOP 12200
+#define BOT 4200
 
 typedef struct Goblin {
     int glizzies;
@@ -50,6 +50,8 @@ s32 left = 0, top = 0, right = 640, bottom = 480;
 
 ir_t ir1;
 ir_t ir2;
+
+gforce_t a1, a2;
 
 Goblin g1;
 Goblin g2;
@@ -77,18 +79,25 @@ void title() {
     // 23 chars
 
     if((wpadheld & WPAD_BUTTON_A) && (wpadheld & WPAD_BUTTON_B)) {
+        WPAD_SetMotionPlus(-1, 1);
         page++;
     }
 }
 
 void game() {
+    WPADData *wd1 = WPAD_Data(WPAD_CHAN_0);
+    WPADData *wd2 = WPAD_Data(WPAD_CHAN_1);
+
+    short p1 = wd1->exp.mp.rx;
+    short p2 = wd2->exp.mp.rx;
+
     GRRLIB_texImg *i1 = tex_goblin_4;
     GRRLIB_texImg *i2 = tex_goblin_4;
     GRRLIB_texImg *t1 = tex_table_3;
     GRRLIB_texImg *t2 = tex_table_3;
 
-    if(g1.bottomed && ir1.y > BOT) i1 = tex_goblin_1;
-    if(g1.bottomed && ir1.y < BOT) i1 = tex_goblin_2;
+    if(g1.bottomed && p1 < BOT) i1 = tex_goblin_1;
+    if(g1.bottomed && p1 > BOT) i1 = tex_goblin_2;
     if(g1.topped) i1 = tex_goblin_3;
 
     if(g2.bottomed && ir2.y > BOT) i2 = tex_goblin_1;
@@ -118,9 +127,9 @@ void game() {
     GRRLIB_DrawImg(left, top, t1, 0, 1, 1, GRRLIB_WHITE);
     GRRLIB_DrawImg(left + right / 2, top, t2, 0, 1, 1, GRRLIB_WHITE);
 
-    if(ir1.y > BOT) g1.bottomed = 1;
-    if(g1.bottomed == 1 && ir1.y < TOP) g1.topped = 1;
-    if(g1.topped == 1 && g1.bottomed == 1 && ir1.y < BOT && ir1.y > TOP) {
+    if(p1 < BOT) g1.bottomed = 1;
+    if(g1.bottomed == 1 && p1 > TOP) g1.topped = 1;
+    if(g1.topped == 1 && g1.bottomed == 1 && p1 > BOT && p1 < TOP) {
         g1.bottomed = 0;
         g1.topped = 0;
         g1.glizzies++;
@@ -174,6 +183,9 @@ int main() {
 
         WPAD_IR(WPAD_CHAN_0, &ir1);
         WPAD_IR(WPAD_CHAN_1, &ir2);
+
+        WPAD_GForce(WPAD_CHAN_0, &a1);
+        WPAD_GForce(WPAD_CHAN_1, &a2);
 
         GRRLIB_FillScreen(GRRLIB_WHITE);
         WPAD_Rumble(WPAD_CHAN_0, 0);
