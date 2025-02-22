@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <wiiuse/wpad.h>
 #include <grrlib.h>
+#include <asndlib.h>
+#include <mp3player.h>
 #include <ogc/lwp_watchdog.h>
 
 // Images
@@ -29,6 +31,10 @@
 #include "goblin_4_png.h"
 #include "goblin_5_png.h"
 #include "hypercam_jpg.h"
+
+// Audios
+#include "goblin_mp3.h"
+#include "monkeys_mp3.h"
 
 // RGBA Colors
 #define GRRLIB_BLACK   0x000000FF
@@ -100,7 +106,7 @@ GRRLIB_texImg *tex_hypercam;
 u32 title_zoom_time;
 f32 title_zoom_max = 0.01;
 int title_zoom_dir = 1;
-int title_zoom_dur = 3500;
+int title_zoom_dur = 2000;
 
 void title() {
     const u32 wpadheld = WPAD_ButtonsHeld(0);
@@ -119,10 +125,16 @@ void title() {
 
     GRRLIB_Printf((RIGHT - 352) / 2, BOTTOM - 48, tex_BMfont2, GRRLIB_GREEN, 1, "PRESS A AND B TO START");
 
+    if(!MP3Player_IsPlaying()) {
+        MP3Player_PlayBuffer(goblin_mp3, goblin_mp3_size, NULL);
+    }
+
     if((wpadheld & WPAD_BUTTON_A) && (wpadheld & WPAD_BUTTON_B)) {
         WPAD_SetMotionPlus(WPAD_CHAN_ALL, 1);
         gaming = 1;
         start_time = ticks_to_millisecs(gettime()) + 5000;
+        MP3Player_Stop();
+        MP3Player_PlayBuffer(monkeys_mp3, monkeys_mp3_size, NULL);
     }
 }
 
@@ -137,7 +149,7 @@ void game() {
             GRRLIB_DrawImg(LEFT + (i * (RIGHT / NUM_PLAYERS)), TOP, tex_table_4, 0, 1, 1, GRRLIB_WHITE);
         }
         f32 s = 2 + 4 * ((start_time - curr_time) % 1000) / 1000.0;
-        GRRLIB_Printf((RIGHT - 32 * s) / 2, (BOTTOM - 32 * s) / 2, tex_BMfont3, GRRLIB_WHITE, s, "%d", (int)(start_time - curr_time) / 1000 + 1);
+        GRRLIB_Printf((RIGHT - 32 * s) / 2, (BOTTOM - 32 * s) / 2, tex_BMfont3, GRRLIB_BLACK, s, "%d", (int)(start_time - curr_time) / 1000 + 1);
     } else {
         for(int i = 0; i < NUM_PLAYERS; i++) {
             WPADData *wd = WPAD_Data(i);
@@ -173,21 +185,29 @@ void game() {
                     goblin[i].topped = 0;
                     goblin[i].glizzies++;
                 }
-            } {
+            } else {
                 goblin[i].topped = 0;
                 goblin[i].bottomed = 0;
+                u32 m, s, ms;
+                ms = goblin[i].finished % 1000;
+                s = (goblin[i].finished / 1000) % 60;
+                m = ((goblin[i].finished / 1000) / 60 ) % 60;
+                GRRLIB_Printf(LEFT + (i * (RIGHT / NUM_PLAYERS)) + 88, BOTTOM - 48, tex_BMfont2, GRRLIB_YELLOW, 1, "%02d:%02d:%03d", m, s, ms);
             }
         }
+        u32 d, m, s, ms;
+        d = curr_time - start_time;
+        ms = d % 1000;
+        s = (d / 1000) % 60;
+        m = ((d / 1000) / 60 ) % 60;
+        GRRLIB_Printf((RIGHT - 144) / 2, 64, tex_BMfont4, GRRLIB_RED, 1, "%02d:%02d:%03d", m, s, ms);
     }
 
     GRRLIB_DrawImg(LEFT, TOP, tex_hypercam, 0, 0.5, 0.5, GRRLIB_WHITE);
 
-    u32 d, m, s, ms;
-    d = curr_time - start_time;
-    ms = d % 1000;
-    s = (d / 1000) % 60;
-    m = ((d / 1000) / 60 ) % 60;
-    GRRLIB_Printf((RIGHT - 144) / 2, 64, tex_BMfont2, GRRLIB_FUCHSIA, 1, "%02d:%02d:%03d", m, s, ms);
+    if(!MP3Player_IsPlaying()) {
+        MP3Player_PlayBuffer(monkeys_mp3, monkeys_mp3_size, NULL);
+    }
 }
 
 void load_textures() {
@@ -248,6 +268,8 @@ void setup() {
     WPAD_Init();
     WPAD_SetDataFormat(WPAD_CHAN_ALL, WPAD_FMT_BTNS_ACC_IR);
     load_textures();
+	ASND_Init();
+	MP3Player_Init();
 }
 
 void teardown() {
