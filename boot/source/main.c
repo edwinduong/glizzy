@@ -18,7 +18,6 @@
 
 #include "title_bg_jpg.h"
 #include "title_png.h"
-#include "pointer_png.h"
 
 #include "game_bg_jpg.h"
 #include "table_1_png.h"
@@ -88,7 +87,6 @@ GRRLIB_texImg *tex_BMfont5;
 
 GRRLIB_texImg *tex_title_bg;
 GRRLIB_texImg *tex_title;
-GRRLIB_texImg *tex_pointer;
 
 GRRLIB_texImg *tex_game_bg;
 GRRLIB_texImg *tex_table_1;
@@ -139,6 +137,7 @@ void title() {
 }
 
 void game() {
+    const u32 wpaddown = WPAD_ButtonsDown(0);
     u32 curr_time = ticks_to_millisecs(gettime());
 
     GRRLIB_DrawImg(LEFT, TOP, tex_game_bg, 0, 1, 1, GRRLIB_WHITE);
@@ -147,9 +146,10 @@ void game() {
         for(int i = 0; i < NUM_PLAYERS; i++) {
             GRRLIB_DrawImg(LEFT + (i * (RIGHT / NUM_PLAYERS)), TOP, tex_goblin_4, 0, 1, 1, GRRLIB_WHITE);
             GRRLIB_DrawImg(LEFT + (i * (RIGHT / NUM_PLAYERS)), TOP, tex_table_4, 0, 1, 1, GRRLIB_WHITE);
+            goblin[i].finished = 0;
         }
         f32 s = 2 + 4 * ((start_time - curr_time) % 1000) / 1000.0;
-        GRRLIB_Printf((RIGHT - 32 * s) / 2, (BOTTOM - 32 * s) / 2, tex_BMfont3, GRRLIB_BLACK, s, "%d", (int)(start_time - curr_time) / 1000 + 1);
+        GRRLIB_Printf((RIGHT - 32 * s) / 2, (BOTTOM - 32 * s) / 2, tex_BMfont3, GRRLIB_LIME, s, "%d", (int)(start_time - curr_time) / 1000 + 1);
     } else {
         for(int i = 0; i < NUM_PLAYERS; i++) {
             WPADData *wd = WPAD_Data(i);
@@ -160,9 +160,11 @@ void game() {
                 if(goblin[i].bottomed && p < BOT_THRESH) tex_goblin = tex_goblin_1;
                 if(goblin[i].bottomed && p > BOT_THRESH) tex_goblin = tex_goblin_2;
                 if(goblin[i].topped) tex_goblin = tex_goblin_3;
-            } else if (goblin[i].glizzies > 60){
+            } else {
                 tex_goblin = tex_goblin_5;
-                if(goblin[i].finished == 0) goblin[i].finished = ticks_to_millisecs(gettime());
+                if(goblin[i].finished == 0) {
+                    goblin[i].finished = curr_time - start_time;
+                }
             }
 
             GRRLIB_texImg *tex_table = tex_table_1;
@@ -208,6 +210,26 @@ void game() {
     if(!MP3Player_IsPlaying()) {
         MP3Player_PlayBuffer(monkeys_mp3, monkeys_mp3_size, NULL);
     }
+
+    int done = 1;
+    for(int i = 0; done && i < NUM_PLAYERS; i++) {
+        if(goblin[i].glizzies < 60) {
+            done = 0;
+        }
+    }
+
+    if(done && wpaddown & WPAD_BUTTON_1)  {
+        gaming = 0;
+        start_time = 0;
+        for(int i = 0; i < NUM_PLAYERS; i++) {
+            goblin[i].topped = 0;
+            goblin[i].bottomed = 0;
+            goblin[i].glizzies = 0;
+            goblin[i].finished = 0;
+            MP3Player_Stop();
+            MP3Player_PlayBuffer(goblin_mp3, goblin_mp3_size, NULL);
+        }
+    }
 }
 
 void load_textures() {
@@ -224,7 +246,6 @@ void load_textures() {
 
     tex_title_bg = GRRLIB_LoadTexture(title_bg_jpg);
     tex_title = GRRLIB_LoadTexture(title_png);
-    tex_pointer = GRRLIB_LoadTexture(pointer_png);
 
     tex_game_bg = GRRLIB_LoadTexture(game_bg_jpg);
     tex_table_1 = GRRLIB_LoadTexture(table_1_png);
@@ -248,7 +269,6 @@ void free_textures() {
 
     GRRLIB_FreeTexture(tex_title_bg);
     GRRLIB_FreeTexture(tex_title);
-    GRRLIB_FreeTexture(tex_pointer);
 
     GRRLIB_FreeTexture(tex_game_bg);
     GRRLIB_FreeTexture(tex_table_1);
