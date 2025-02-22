@@ -12,6 +12,10 @@
 #include "goblin_2_jpg.h"
 #include "goblin_3_jpg.h"
 #include "goblin_4_jpg.h"
+#include "table_1_png.h"
+#include "table_2_png.h"
+#include "table_3_png.h"
+#include "table_4_png.h"
 
 // RGBA Colors
 #define GRRLIB_BLACK   0x000000FF
@@ -32,8 +36,8 @@
 #define GRRLIB_WHITE   0xFFFFFFFF
 
 // Thresholds
-#define TOP 160
-#define BOT 320
+#define TOP 120
+#define BOT 360
 
 typedef struct Goblin {
     int glizzies;
@@ -60,6 +64,10 @@ GRRLIB_texImg *tex_goblin_1;
 GRRLIB_texImg *tex_goblin_2;
 GRRLIB_texImg *tex_goblin_3;
 GRRLIB_texImg *tex_goblin_4;
+GRRLIB_texImg *tex_table_1;
+GRRLIB_texImg *tex_table_2;
+GRRLIB_texImg *tex_table_3;
+GRRLIB_texImg *tex_table_4;
 
 void title() {
     const u32 wpadheld = WPAD_ButtonsHeld(0);
@@ -76,6 +84,8 @@ void title() {
 void game() {
     GRRLIB_texImg *i1 = tex_goblin_4;
     GRRLIB_texImg *i2 = tex_goblin_4;
+    GRRLIB_texImg *t1 = tex_table_3;
+    GRRLIB_texImg *t2 = tex_table_3;
 
     if(g1.bottomed && ir1.y > BOT) i1 = tex_goblin_1;
     if(g1.bottomed && ir1.y < BOT) i1 = tex_goblin_2;
@@ -87,6 +97,26 @@ void game() {
 
     GRRLIB_DrawImg(left, top, i1, 0, 1, 1, GRRLIB_WHITE);
     GRRLIB_DrawImg(left + right / 2, top, i2, 0, 1, 1, GRRLIB_WHITE);
+    if(g1.glizzies < 20) {
+        t1 = tex_table_4;
+    } else if (g1.glizzies < 40) {
+        t1 = tex_table_3;
+    } else if (g1.glizzies < 60) {
+        t1 = tex_table_2;
+    } else if (g1.glizzies >= 60) {
+        t1 = tex_table_1;
+    }
+    if(g2.glizzies < 20) {
+        t2 = tex_table_4;
+    } else if (g2.glizzies < 40) {
+        t2 = tex_table_3;
+    } else if (g2.glizzies < 60) {
+        t2 = tex_table_2;
+    } else if (g2.glizzies >= 60) {
+        t2 = tex_table_1;
+    }
+    GRRLIB_DrawImg(left, top, t1, 0, 1, 1, GRRLIB_WHITE);
+    GRRLIB_DrawImg(left + right / 2, top, t2, 0, 1, 1, GRRLIB_WHITE);
 
     if(ir1.y > BOT) g1.bottomed = 1;
     if(g1.bottomed == 1 && ir1.y < TOP) g1.topped = 1;
@@ -132,6 +162,10 @@ int main() {
     tex_goblin_2 = GRRLIB_LoadTexture(goblin_2_jpg);
     tex_goblin_3 = GRRLIB_LoadTexture(goblin_3_jpg);
     tex_goblin_4 = GRRLIB_LoadTexture(goblin_4_jpg);
+    tex_table_1 = GRRLIB_LoadTexture(table_1_png);
+    tex_table_2 = GRRLIB_LoadTexture(table_2_png);
+    tex_table_3 = GRRLIB_LoadTexture(table_3_png);
+    tex_table_4 = GRRLIB_LoadTexture(table_4_png);
 
     while(1) {
         WPAD_SetVRes(0, 640, 480);
