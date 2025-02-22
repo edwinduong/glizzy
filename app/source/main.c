@@ -28,8 +28,8 @@
 #define GRRLIB_WHITE   0xFFFFFFFF
 
 // Thresholds
-#define TOP 100
-#define BOT 380
+#define TOP 160
+#define BOT 320
 
 typedef struct Goblin {
     int glizzies;
@@ -68,16 +68,17 @@ void title() {
 void game() {
     u32 c1 = GRRLIB_WHITE;
     u32 c2 = GRRLIB_WHITE;
-    if(g1.topped == 1) {
-        c1 = GRRLIB_GREEN;
-    }
-    if(g1.bottomed == 1) {
-        c1 = GRRLIB_RED;
-    }
-    GRRLIB_Printf(left, top+300, tex_BMfont3, c1, 1, "IR1 Y VALUE: %d", (int)ir1.y);
-    GRRLIB_Printf(left, top+400, tex_BMfont3, c2, 1, "IR2 Y VALUE: %d", (int)ir2.y);
-    if(ir1.y < TOP && g1.bottomed == 1) g1.topped = 1; else g1.topped = 0;
+    if(g1.bottomed == 1) c1 = GRRLIB_RED;
+    if(g1.topped == 1) c1 = GRRLIB_GREEN;
+    GRRLIB_Printf(left, top+300, tex_BMfont3, c1, 1, "IR1 Y VALUE: %d %d %d", (int)ir1.y, g1.topped, g1.glizzies);
+    GRRLIB_Printf(left, top+400, tex_BMfont3, c2, 1, "IR2 Y VALUE: %d %d", (int)ir2.y, g1.bottomed);
     if(ir1.y > BOT) g1.bottomed = 1;
+    if(g1.bottomed == 1 && ir1.y < TOP) g1.topped = 1;
+    if(g1.topped == 1 && g1.bottomed == 1 && ir1.y < BOT && ir1.y > TOP) {
+        g1.bottomed = 0;
+        g1.topped = 0;
+        g1.glizzies++;
+    }
 }
 
 int main() {
