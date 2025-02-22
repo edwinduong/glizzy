@@ -20,6 +20,8 @@
 #include "sprite_png.h"
 #include "ocean_bmf.h"
 #include "frontal_bmf.h"
+#include "title_png_png.h"
+#include "homepage_jpg_jpg.h"
 
 // Tile stuff
 #define TILE_DELAY  10
@@ -50,47 +52,109 @@
 #define GRRLIB_AQUA    0x00FFFFFF
 #define GRRLIB_WHITE   0xFFFFFFFF
 
+// Thresholds
+#define TOP 100
+#define BOT 380
+
+typedef struct Player {
+    int glizzies;
+    int topped_out;
+    int bottomed_out;
+} Player;
+
 static u8 CalculateFrameRate(void);
 
+s32 page = 0; // defines what is displayed in the stage
+// 0 is the main menu
+
+s32 left = 0, top = 0, frame = TILE_DOWN + 1;
+u32 wait = TILE_DELAY, direction = TILE_DOWN, direction_new = TILE_DOWN;
+u8 FPS = 0;
+
+ir_t ir1;
+ir_t ir2;
+
+Player p1;
+Player p2;
+
+// real pngs
+GRRLIB_texImg *tex_title_png;
+GRRLIB_texImg *tex_homepage_jpg_jpg;
+
+GRRLIB_texImg *tex_test_jpg;
+GRRLIB_texImg *tex_test_bmp;
+GRRLIB_bytemapFont *bmf_Font1;
+GRRLIB_bytemapFont *bmf_Font2 ;
+GRRLIB_texImg *tex_sprite_png;
+GRRLIB_texImg *tex_BMfont1;
+GRRLIB_texImg *tex_BMfont2;
+GRRLIB_texImg *tex_BMfont3;
+GRRLIB_texImg *tex_BMfont4;
+GRRLIB_texImg *tex_BMfont5;
+
+void main_menu() {
+    // const u32 wpaddown = WPAD_ButtonsDown(0);
+    const u32 wpadheld = WPAD_ButtonsHeld(0);
+
+    // GRRLIB_DrawImg(left, top, tex_title_png, 0, 1, 1, GRRLIB_WHITE);
+    // (640 - 480) / 2, puts the image in the middle
+    GRRLIB_DrawImg((640 - 480) / 2, top, tex_homepage_jpg_jpg, 0, 2, 1.9, GRRLIB_WHITE);
+    GRRLIB_Printf((640 - 368) / 2, 480 - 16 - 4, tex_BMfont2, GRRLIB_WHITE, 1, "PRESS A AND B TO START");
+    // 23 chars
+
+    if((wpadheld & WPAD_BUTTON_A) && (wpadheld & WPAD_BUTTON_B)) {
+        page++;
+    }
+}
+
+void game() {
+    u32 c1 = GRRLIB_WHITE;
+    u32 c2 = GRRLIB_WHITE;
+    if(p1.topped_out == 1) {
+        c1 = GRRLIB_GREEN;
+    }
+    if(p1.bottomed_out == 1) {
+        c1 = GRRLIB_RED;
+    }
+    GRRLIB_Printf(left, top+300, tex_BMfont3, c1, 1, "IR1 Y VALUE: %d", (int)ir1.y);
+    GRRLIB_Printf(left, top+400, tex_BMfont3, c2, 1, "IR2 Y VALUE: %d", (int)ir2.y);
+    if(ir1.y < TOP && p1.bottomed_out == 1) p1.topped_out = 1; else p1.topped_out = 0;
+    if(ir1.y > BOT) p1.bottomed_out = 1;
+}
+
 int main() {
-    s32 page = 0; // defines what is displayed in the stage
-    // 0 is the main menu
-
-    s32 left = 0, top = 0, frame = TILE_DOWN + 1;
-    u32 wait = TILE_DELAY, direction = TILE_DOWN, direction_new = TILE_DOWN;
-    u8 FPS = 0;
-
-    ir_t ir1;
-    guVector triangle[] = {{400,200,0.0f}, {500,400,0.0f}, {300,400,0.0f}};
-    u32 trianglecolor[] = {GRRLIB_GREEN, GRRLIB_RED, GRRLIB_BLUE};
-
     GRRLIB_Init();
 
     WPAD_Init();
     WPAD_SetDataFormat(WPAD_CHAN_0, WPAD_FMT_BTNS_ACC_IR);
+    WPAD_SetDataFormat(WPAD_CHAN_1, WPAD_FMT_BTNS_ACC_IR);
 
-    GRRLIB_texImg *tex_test_jpg = GRRLIB_LoadTexture(test_jpg_jpg);
-    GRRLIB_texImg *tex_test_bmp = GRRLIB_LoadTexture(test_bmp_bmp);
+    // used pngs
+    tex_title_png = GRRLIB_LoadTexture(title_png_png);
 
-    GRRLIB_bytemapFont *bmf_Font1 = GRRLIB_LoadBMF(ocean_bmf);
-    GRRLIB_bytemapFont *bmf_Font2 = GRRLIB_LoadBMF(frontal_bmf);
+    tex_homepage_jpg_jpg = GRRLIB_LoadTexture(homepage_jpg_jpg);
+    tex_test_jpg = GRRLIB_LoadTexture(test_jpg_jpg);
+    tex_test_bmp = GRRLIB_LoadTexture(test_bmp_bmp);
 
-    GRRLIB_texImg *tex_sprite_png = GRRLIB_LoadTexture(sprite_png);
+    bmf_Font1 = GRRLIB_LoadBMF(ocean_bmf);
+    bmf_Font2 = GRRLIB_LoadBMF(frontal_bmf);
+
+    tex_sprite_png = GRRLIB_LoadTexture(sprite_png);
     GRRLIB_InitTileSet(tex_sprite_png, 24, 32, 0);
 
-    GRRLIB_texImg *tex_BMfont1 = GRRLIB_LoadTexture(BMfont1_png);
+    tex_BMfont1 = GRRLIB_LoadTexture(BMfont1_png);
     GRRLIB_InitTileSet(tex_BMfont1, 32, 32, 32);
 
-    GRRLIB_texImg *tex_BMfont2 = GRRLIB_LoadTexture(BMfont2_png);
+    tex_BMfont2 = GRRLIB_LoadTexture(BMfont2_png);
     GRRLIB_InitTileSet(tex_BMfont2, 16, 16, 32);
 
-    GRRLIB_texImg *tex_BMfont3 = GRRLIB_LoadTexture(BMfont3_png);
+    tex_BMfont3 = GRRLIB_LoadTexture(BMfont3_png);
     GRRLIB_InitTileSet(tex_BMfont3, 32, 32, 32);
 
-    GRRLIB_texImg *tex_BMfont4 = GRRLIB_LoadTexture(BMfont4_png);
+    tex_BMfont4 = GRRLIB_LoadTexture(BMfont4_png);
     GRRLIB_InitTileSet(tex_BMfont4, 16, 16, 32);
 
-    GRRLIB_texImg *tex_BMfont5 = GRRLIB_LoadTexture(BMfont5_png);
+    tex_BMfont5 = GRRLIB_LoadTexture(BMfont5_png);
     GRRLIB_InitTileSet(tex_BMfont5, 8, 16, 0);
 
     while(1) {
@@ -100,72 +164,18 @@ int main() {
         const u32 wpadheld = WPAD_ButtonsHeld(0);
 
         WPAD_IR(WPAD_CHAN_0, &ir1);
+        WPAD_IR(WPAD_CHAN_1, &ir2);
 
-        GRRLIB_FillScreen(GRRLIB_BLACK);    // Clear the screen
+        GRRLIB_FillScreen(GRRLIB_WHITE);    // Clear the screen
         WPAD_Rumble(WPAD_CHAN_0, 0);
+        WPAD_Rumble(WPAD_CHAN_1, 0);
         switch(page)
         {
             case 1:   // Draw images
-                GRRLIB_Printf(5, 25, tex_BMfont2, GRRLIB_WHITE, 1, "IMAGES DEMO");
-
-                GRRLIB_DrawImg(10, 50, tex_test_jpg, 0, 1, 1, GRRLIB_WHITE);  // Draw a jpeg
-                GRRLIB_DrawImg(350, 50, tex_test_bmp, 0, 4, 4, GRRLIB_WHITE); // Draw a bitmap
-
-                // Draw a sprite
-                GRRLIB_DrawTile(600, 400, tex_sprite_png, 0, 2, 2, GRRLIB_WHITE, 12*4); // Rupee
-                GRRLIB_DrawTile(320+left, 240+top, tex_sprite_png, 0, 2, 2, GRRLIB_WHITE, frame);
-                if(GRRLIB_RectOnRect(320+left, 240+top, 48, 64, 618, 434, 12, 30))
-                {
-                    WPAD_Rumble(WPAD_CHAN_0, 1);
-                }
-                if(direction_new != direction) {
-                    // Direction has changed, modify frame immediately
-                    direction = direction_new;
-                    frame = direction;
-                    wait = 0;
-                }
-                wait++;
-                if(wait > TILE_DELAY) {
-                    // wait is needed for the number of frame per second to be OK
-                    wait = 0;
-                    if(wpadheld & WPAD_BUTTON_LEFT || wpadheld & WPAD_BUTTON_RIGHT ||
-                        wpadheld & WPAD_BUTTON_UP || wpadheld & WPAD_BUTTON_DOWN) {
-                        frame++;
-                    }
-                    else {
-                        frame = direction + 1;  // Not moving
-                        wait = TILE_DELAY;      // Ready to move
-                    }
-                    if(frame > direction + 2)
-                        frame = direction;
-                }
+                game();
                 break;
-            case 2:   // Draw shapes
-                GRRLIB_Printf(5, 25, tex_BMfont2, GRRLIB_WHITE, 1, "SHAPES DEMO");
-
-                GRRLIB_Rectangle(100, 100, 200, 100, GRRLIB_RED, 1);
-                GRRLIB_Line(100, 100, 350, 200, GRRLIB_SILVER);
-                GRRLIB_NGoneFilled(triangle, trianglecolor, 3);
-                GRRLIB_Rectangle(left + 150, top + 150, 200, 200, 0x0000FFC8, 1); // Blue with alpha
-                GRRLIB_Circle(left + 300, top + 300, 50, GRRLIB_OLIVE, 1);
-
-                // Draw a yellow four pixel dot where the Wii Remote is pointing
-                GRRLIB_Plot(ir1.sx, ir1.sy, GRRLIB_YELLOW);
-                GRRLIB_Plot(ir1.sx + 1, ir1.sy, GRRLIB_YELLOW);
-                GRRLIB_Plot(ir1.sx, ir1.sy + 1, GRRLIB_YELLOW);
-                GRRLIB_Plot(ir1.sx + 1, ir1.sy + 1, GRRLIB_YELLOW);
-                break;
-            default: // Print some text
-                GRRLIB_Printf(5, 25, tex_BMfont2, GRRLIB_WHITE, 1, "GRRLIB %s TEXT DEMO", GRRLIB_VER_STRING);
-
-                GRRLIB_Printf(5, 100, tex_BMfont4, GRRLIB_WHITE, 1, "TO QUIT PRESS THE HOME BUTTON.");
-                GRRLIB_Printf(5, 140, tex_BMfont4, GRRLIB_YELLOW, 1, "USE + OR - TO MOVE ACROSS PAGES.");
-                GRRLIB_Printf(5, 180, tex_BMfont4, GRRLIB_GREEN, 1, "USE THE D-PAD TO MOVE STUFF.");
-                GRRLIB_Printf(left, top+250, tex_BMfont1, GRRLIB_WHITE, 1, "IR X VALUE: %d", (int)ir1.x);
-                GRRLIB_Printf(left, top+300, tex_BMfont3, GRRLIB_WHITE, 1, "IR Y VALUE: %d", (int)ir1.y);
-                GRRLIB_Printf(left, top+350, tex_BMfont3, 0XFFFFFF50, 1, "TEXT WITH ALPHA");
-                GRRLIB_Printf(left, top+400, tex_BMfont5, GRRLIB_LIME, 1, "This font has the 128 ASCII characters");
-                GRRLIB_PrintBMF(left, top+420, bmf_Font2, "%s", bmf_Font2->name);
+            default:
+                main_menu();
         }
         GRRLIB_Printf(500, 27, tex_BMfont5, GRRLIB_WHITE, 1, "Current FPS: %d", FPS);
 
@@ -200,24 +210,12 @@ int main() {
                 top++;
             direction_new = TILE_DOWN;  // for tile example
         }
-        if(wpaddown & WPAD_BUTTON_MINUS) {
-            page--;
-            left = 0;
-            top = 0;
-            if(page < 0)
-                page = 2;
-        }
-        if(wpaddown & WPAD_BUTTON_PLUS) {
-            page++;
-            left = 0;
-            top = 0;
-            if(page > 2)
-                page = 0;
-        }
         if(wpadheld & WPAD_BUTTON_1 && wpadheld & WPAD_BUTTON_2) {
             WPAD_Rumble(WPAD_CHAN_0, 1); // Rumble on
+            WPAD_Rumble(WPAD_CHAN_1, 1); // Rumble on
             GRRLIB_ScrShot("sd:/grrlib.png");
             WPAD_Rumble(WPAD_CHAN_0, 0); // Rumble off
+            WPAD_Rumble(WPAD_CHAN_1, 0); // Rumble off
         }
 
         GRRLIB_Render();
