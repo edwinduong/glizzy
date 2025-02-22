@@ -1,10 +1,11 @@
 // main.c
 // AUTHORS: Edwin Duong, Mark Lysack
 
-// Imports
+// Includes
 #include <stdlib.h>
 #include <wiiuse/wpad.h>
 #include <grrlib.h>
+#include <ogc/lwp_watchdog.h>
 
 // Images
 #include "BMfont1_png.h"
@@ -12,7 +13,8 @@
 #include "BMfont3_png.h"
 #include "BMfont4_png.h"
 #include "BMfont5_png.h"
-#include "title_jpg_jpg.h"
+#include "title_bg_jpg.h"
+#include "title_png.h"
 #include "goblin_1_jpg.h"
 #include "goblin_2_jpg.h"
 #include "goblin_3_jpg.h"
@@ -69,6 +71,7 @@ GRRLIB_texImg *tex_BMfont2;
 GRRLIB_texImg *tex_BMfont3;
 GRRLIB_texImg *tex_BMfont4;
 GRRLIB_texImg *tex_BMfont5;
+GRRLIB_texImg *tex_title_bg;
 GRRLIB_texImg *tex_title;
 GRRLIB_texImg *tex_goblin_1;
 GRRLIB_texImg *tex_goblin_2;
@@ -79,10 +82,26 @@ GRRLIB_texImg *tex_table_2;
 GRRLIB_texImg *tex_table_3;
 GRRLIB_texImg *tex_table_4;
 
+// Title animations
+u32 title_zoom_time;
+f32 title_zoom_max = 0.01;
+int title_zoom_dir = 1;
+int title_zoom_dur = 3500;
+
 void title() {
     const u32 wpadheld = WPAD_ButtonsHeld(0);
 
-    GRRLIB_DrawImg((640 - 480) / 2, TOP, tex_title, 0, 2, 1.9, GRRLIB_WHITE);
+    u32 curr_time = ticks_to_millisecs(gettime());
+
+    if(curr_time > title_zoom_time + title_zoom_dur) {
+        title_zoom_time = curr_time;
+        title_zoom_dir *= -1;
+    }
+
+    f32 s = 1 - (title_zoom_max * title_zoom_dir) + 2 * title_zoom_max * title_zoom_dir * (curr_time - title_zoom_time) / title_zoom_dur;
+
+    GRRLIB_DrawImg(LEFT, TOP, tex_title_bg, 0, 1, 1, GRRLIB_WHITE);
+    GRRLIB_DrawImg((RIGHT - 320 * s) / 2, (BOTTOM - 320 * s) / 2, tex_title, 0, s, s, GRRLIB_WHITE);
     GRRLIB_Printf((640 - 368) / 2, 480 - 16 - 4, tex_BMfont2, GRRLIB_GREEN, 1, "PRESS A AND B TO START");
     // 23 chars
 
@@ -135,7 +154,8 @@ void load_textures() {
     GRRLIB_InitTileSet(tex_BMfont4, 16, 16, 32);
     tex_BMfont5 = GRRLIB_LoadTexture(BMfont5_png);
     GRRLIB_InitTileSet(tex_BMfont5, 8, 16, 0);
-    tex_title = GRRLIB_LoadTexture(title_jpg_jpg);
+    tex_title_bg = GRRLIB_LoadTexture(title_bg_jpg);
+    tex_title = GRRLIB_LoadTexture(title_png);
     tex_goblin_1 = GRRLIB_LoadTexture(goblin_1_jpg);
     tex_goblin_2 = GRRLIB_LoadTexture(goblin_2_jpg);
     tex_goblin_3 = GRRLIB_LoadTexture(goblin_3_jpg);
@@ -173,7 +193,7 @@ void draw() {
         WPAD_ScanPads();
         const u32 wpaddown = WPAD_ButtonsDown(0);
 
-        GRRLIB_FillScreen(GRRLIB_WHITE);
+        GRRLIB_FillScreen(GRRLIB_BLACK);
         WPAD_Rumble(WPAD_CHAN_ALL, 0);
 
         if(gaming)
